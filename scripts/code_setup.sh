@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-
+set +x
 source "${ONE_PIPELINE_PATH}"/tools/get_repo_params
 
 APP_TOKEN_PATH="./app-token"
@@ -13,7 +13,11 @@ if [[ $APP_SCM_TYPE == "gitlab" ]]; then
     "only_allow_merge_if_pipeline_succeeds": true
     }'
 else
+  echo "$APP_TOKEN_PATH"
+  echo "$APP_API_URL"
+  cat $APP_TOKEN_PATH
   curl -u ":$(cat $APP_TOKEN_PATH)" https://$APP_API_URL/repos/$APP_REPO_OWNER/$APP_REPO_NAME/branches/master/protection \
     -XPUT -d '{"required_pull_request_reviews":{"dismiss_stale_reviews":true},"required_status_checks":{"strict":true,"contexts":["tekton/code-branch-protection","tekton/code-unit-tests","tekton/code-cis-check","tekton/code-vulnerability-scan","tekton/code-detect-secrets"]},"enforce_admins":null,"restrictions":null}'
 fi
+set -x
 npm ci
